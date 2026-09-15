@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0b0907;
+  --ink-soft: #14110e;
+  --ink-raised: #1c1814;
+  --line: #2a2318;
+  --gold: #c4a35a;
+  --gold-bright: #e4c878;
+  --cream: #f4ede0;
+  --muted: #9a8f7a;
+  --danger: #c45c4a;
+  --ok: #8fbf8a;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-raised: var(--ink-raised);
+  --color-line: var(--line);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-cream: var(--cream);
+  --color-muted: var(--muted);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-outfit);
+  --font-serif: var(--font-cinzel);
+}
+
+html,
+body {
+  background: var(--ink);
+  color: var(--cream);
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-outfit), sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--gold) 40%, transparent);
+  color: var(--cream);
+}
+
+input[type="datetime-local"],
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
+}
