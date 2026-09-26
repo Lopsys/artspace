@@ -16,17 +16,17 @@ import { cn } from "@/shared/lib/cn";
 
 type Step = "branch" | "service" | "professional" | "slot" | "account" | "done";
 
-const BRANCHES: Branch[] = ["tattoo", "barber", "piercing"];
+const SERVICES: Branch[] = ["tattoo", "barber", "piercing"];
 
 export function BookingWizard({
   catalog,
-  presetBranch,
+  onQuoteBranch,
 }: {
   catalog: PublicCatalog;
-  presetBranch?: Branch | null;
+  onQuoteBranch: (branch: "tattoo" | "piercing") => void;
 }) {
-  const [step, setStep] = useState<Step>(presetBranch ? "service" : "branch");
-  const [branch, setBranch] = useState<Branch | null>(presetBranch ?? null);
+  const branch: Branch = "barber";
+  const [step, setStep] = useState<Step>("branch");
   const [serviceName, setServiceName] = useState<string | null>(null);
   const [procedure, setProcedure] = useState<CatalogProcedure | null>(null);
   const [slots, setSlots] = useState<{ startsAt: string; endsAt: string }[]>([]);
@@ -150,25 +150,33 @@ export function BookingWizard({
       <p className="text-xs tracking-[0.28em] text-gold">AGENDAR</p>
       <h2 className="mt-2 font-serif text-3xl text-cream">Agendar</h2>
       <p className="mt-2 max-w-xl text-sm text-muted">
-        Primeiro o atendimento, depois o profissional, depois o horário.
+        Tatuagem e piercing levam aos profissionais. Barbearia segue para o horário.
       </p>
 
       {step === "branch" && (
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          {BRANCHES.map((item) => (
+        <div className="mt-8 grid gap-3">
+          <p className="font-serif text-xl text-cream">O que você procura?</p>
+          {SERVICES.map((item) => (
             <button
               key={item}
               type="button"
-              className="rounded-3xl border border-line bg-ink px-4 py-6 text-left transition hover:border-gold/60"
+              className="rounded-2xl border border-line bg-ink px-4 py-4 text-left transition hover:border-gold/60"
               onClick={() => {
-                setBranch(item);
-                setServiceName(null);
-                setProcedure(null);
-                setStep("service");
+                if (item === "barber") {
+                  setServiceName(null);
+                  setProcedure(null);
+                  setStep("service");
+                  return;
+                }
+                onQuoteBranch(item);
               }}
             >
-              <p className="font-serif text-2xl text-cream">{BRANCH_LABEL[item]}</p>
-              <p className="mt-2 text-xs text-muted">Escolher atendimento</p>
+              <p className="text-cream">{BRANCH_LABEL[item]}</p>
+              <p className="mt-1 text-sm text-muted">
+                {item === "barber"
+                  ? "Escolha o corte, o profissional e o horário."
+                  : "Veja os profissionais e peça o orçamento."}
+              </p>
             </button>
           ))}
         </div>
@@ -181,9 +189,9 @@ export function BookingWizard({
             className="text-left text-sm text-gold"
             onClick={() => setStep("branch")}
           >
-            ← Ramos
+            ← Serviços
           </button>
-          <p className="font-serif text-xl text-cream">Qual atendimento você quer?</p>
+          <p className="font-serif text-xl text-cream">Qual corte você quer?</p>
           {services.length === 0 && (
             <p className="text-sm text-muted">
               Ainda não há atendimentos neste ramo. A equipe cadastra na dashboard.

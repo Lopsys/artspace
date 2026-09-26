@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   Scissors,
+  UserRound,
   Users,
   Wallet,
   X,
@@ -23,6 +24,7 @@ const PRO_LINKS = [
   { href: "/app/procedimentos", label: "Procedimentos", icon: Scissors },
   { href: "/app/grade", label: "Grade", icon: CalendarDays },
   { href: "/app/clientes", label: "Clientes", icon: Users },
+  { href: "/app/perfil", label: "Perfil", icon: UserRound },
 ];
 
 const ADMIN_LINKS = [

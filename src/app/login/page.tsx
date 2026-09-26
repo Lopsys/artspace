@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { DEMO_ACCOUNTS } from "@/features/studio/seed";
 import { useStudio } from "@/features/studio/store";
 import { Button } from "@/shared/components/ui/button";
 import { Field } from "@/shared/components/ui/input";
@@ -13,16 +12,16 @@ function LoginForm() {
   const { login } = useStudio();
   const router = useRouter();
   const search = useSearchParams();
-  const [email, setEmail] = useState("maycom@artspace.com.br");
-  const [password, setPassword] = useState("artspace123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function go(nextEmail: string, nextPassword = password) {
+  async function go() {
     if (busy) return;
     setBusy(true);
     setError("");
-    const result = await login(nextEmail, nextPassword);
+    const result = await login(email, password);
     setBusy(false);
     if (!result.ok) {
       setError(result.message);
@@ -70,7 +69,7 @@ function LoginForm() {
           className="mt-10 grid gap-3 text-left"
           onSubmit={(event) => {
             event.preventDefault();
-            go(email);
+            void go();
           }}
         >
           <Field
@@ -92,30 +91,6 @@ function LoginForm() {
             {busy ? "Entrando…" : "Entrar"}
           </Button>
         </form>
-
-        <div className="mt-8 grid gap-2 text-left">
-          <p className="text-center text-xs tracking-[0.2em] text-muted">
-            ACESSO DA EQUIPE · senha artspace123
-          </p>
-          {DEMO_ACCOUNTS.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              onClick={() => {
-                setEmail(account.email);
-                setPassword("artspace123");
-                go(account.email, "artspace123");
-              }}
-              className="rounded-2xl border border-line bg-ink-soft px-4 py-3 text-left transition hover:border-gold/50 disabled:opacity-50"
-              disabled={busy}
-            >
-              <p className="text-sm text-cream">{account.name}</p>
-              <p className="text-xs text-muted">
-                {account.email} · {account.role}
-              </p>
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );

@@ -11,7 +11,9 @@ function slot(weekdayOffset: number, hour: number, minute = 0) {
 
 async function loginMaycom(page: Page) {
   await page.goto("/login");
-  await page.getByRole("button", { name: /Maycom Michel/i }).click();
+  await page.getByLabel("E-mail").fill("maycom@artspace.com.br");
+  await page.getByLabel("Senha").fill("artspace123");
+  await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page.getByText("AGENDA", { exact: true })).toBeVisible({
     timeout: 20_000,
   });

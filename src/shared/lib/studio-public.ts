@@ -1,8 +1,8 @@
 export const STUDIO = {
   name: "Artspace Barbearia",
   tagline: "Tatuagem · Barbearia · Piercing",
-  address: "Rua Arthur Bernardes, 145, sala 104 — Centro, Viçosa/MG",
-  cep: "36570-061",
+  address: "R. Padre Serafim, 138 — Centro, Viçosa - MG",
+  cep: "36570-093",
   phone: "31995638605",
   phoneLabel: "(31) 99563-8605",
   instagram: "artspace.tattoo",

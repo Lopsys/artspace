@@ -4,6 +4,7 @@ export type CatalogProfessional = {
   id: string;
   name: string;
   branches: Branch[];
+  avatarUrl?: string | null;
 };
 
 export type CatalogProcedure = {
@@ -27,6 +28,7 @@ export function catalogFromState(state: StudioState): PublicCatalog {
     .map((profile) => ({
       id: profile.id,
       name: profile.name,
+      avatarUrl: null,
       branches: state.branches
         .filter((item) => item.professionalId === profile.id)
         .map((item) => item.branch),

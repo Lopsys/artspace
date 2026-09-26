@@ -77,14 +77,6 @@ function catalogFor(professionalId: string, branches: Branch[]) {
   );
 }
 
-export const DEMO_ACCOUNTS = [
-  { email: "maycom@artspace.com.br", name: "Maycom Michel", role: "Admin · tattoo · barbearia" },
-  { email: "jhonatas@artspace.com.br", name: "Jhonatas", role: "Tatuagem" },
-  { email: "jonh@artspace.com.br", name: "Jonh Lenno", role: "Barbearia" },
-  { email: "lucas@artspace.com.br", name: "Lucas Souza", role: "Barbearia" },
-  { email: "larisse@artspace.com.br", name: "Larisse Ribeiro", role: "Piercing" },
-];
-
 export function createSeedState(): StudioState {
   return {
     profiles: [

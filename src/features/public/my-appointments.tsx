@@ -95,7 +95,7 @@ export function MyAppointments() {
       <header className="border-b border-line">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Artspace" width={36} height={36} />
+            <Image src="/lion.webp" alt="Artspace" width={36} height={36} />
             <span className="font-serif tracking-[0.28em]">ARTSPACE</span>
           </Link>
           <div className="flex gap-3 text-sm">
