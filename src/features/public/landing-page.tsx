@@ -137,7 +137,7 @@ export function LandingPage() {
               <span className="h-px w-12 bg-gold" />
             </div>
             <p data-hero className="mx-auto mt-6 max-w-md text-muted">
-              {STUDIO.tagline}. Uma agenda por profissional, no seu tempo.
+              {STUDIO.tagline}. <br />Uma agenda por profissional, no seu tempo.
             </p>
             <div data-hero className="mt-8 flex flex-wrap justify-center gap-3">
               <Button

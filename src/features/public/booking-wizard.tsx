@@ -150,7 +150,10 @@ export function BookingWizard({
       <p className="text-xs tracking-[0.28em] text-gold">AGENDAR</p>
       <h2 className="mt-2 font-serif text-3xl text-cream">Agendar</h2>
       <p className="mt-2 max-w-xl text-sm text-muted">
-        Tatuagem e piercing levam aos profissionais. Barbearia segue para o horário.
+        Peça seu orçamento personalizado para tatuagens e piercings.
+      </p>
+      <p className="mt-1 max-w-xl text-sm text-muted">
+        Agende seu corte de cabelo diretamente por aqui.
       </p>
 
       {step === "branch" && (
