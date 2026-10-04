@@ -206,7 +206,7 @@ export function LandingPage() {
               : "hidden"
           }
         >
-          <div className="shrink-0">
+          <div className="shrink-0 pb-3">
             <button
               type="button"
               className="text-sm text-gold hover:text-gold-bright"
@@ -222,18 +222,22 @@ export function LandingPage() {
             </h2>
             {teamFocus && <p className="mt-1 text-sm text-muted">{BRANCH_LABEL[teamFocus]}</p>}
           </div>
-          <ul className="mt-2 flex min-h-0 w-full flex-1 flex-col">
+          <ul
+            className={`flex min-h-0 w-full flex-1 flex-col overflow-hidden ${
+              team.length <= 1 ? "gap-4" : team.length === 2 ? "gap-5" : "gap-4"
+            }`}
+          >
             {team.map((person) => {
               const portrait = portraitFor(person.name, person.avatarUrl);
               const slug = profileSlugForName(person.name);
               const linked = Boolean(slug) && Boolean(quoteKind(person.branches));
               const bookBarber = teamFocus === "barber";
               const photoMax =
-                team.length <= 1 ? "17rem" : team.length === 2 ? "13rem" : "9.5rem";
+                team.length <= 1 ? "16rem" : team.length === 2 ? "11.5rem" : "8.25rem";
               const frameClass =
-                "relative block aspect-square shrink-0 overflow-hidden rounded-full border-2 border-gold/55 bg-ink-soft shadow-[0_0_0_6px_rgba(196,163,90,0.08)]";
+                "relative block aspect-square max-h-full overflow-hidden rounded-full border-2 border-gold/55 bg-ink-soft shadow-[0_0_0_6px_rgba(196,163,90,0.08)]";
               const frameStyle = {
-                height: `min(${team.length <= 1 ? "82%" : team.length === 2 ? "74%" : "70%"}, ${photoMax})`,
+                height: `min(100%, ${photoMax})`,
                 width: "auto",
               } as const;
               const portraitNode = portrait ? (
@@ -241,7 +245,7 @@ export function LandingPage() {
                   src={portrait.src}
                   alt={linked ? "" : person.name}
                   fill
-                  sizes={team.length <= 1 ? "272px" : team.length === 2 ? "208px" : "152px"}
+                  sizes={team.length <= 1 ? "256px" : team.length === 2 ? "184px" : "132px"}
                   className="object-cover"
                   style={
                     portrait.position ? { objectPosition: portrait.position } : undefined
@@ -259,42 +263,47 @@ export function LandingPage() {
                 <li
                   key={person.id}
                   data-reveal
-                  className="flex min-h-0 flex-1 flex-col items-center justify-center"
+                  className="flex min-h-0 flex-1 flex-col items-center overflow-hidden"
                 >
-                  {bookBarber ? (
-                    <button
-                      type="button"
-                      aria-label={`Agendar com ${person.name}`}
-                      className={`${frameClass} transition hover:border-gold`}
-                      style={frameStyle}
-                      onClick={() => openBarberBooking(person.id)}
+                  <div className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
+                    {bookBarber ? (
+                      <button
+                        type="button"
+                        aria-label={`Agendar com ${person.name}`}
+                        className={`${frameClass} transition hover:border-gold`}
+                        style={frameStyle}
+                        onClick={() => openBarberBooking(person.id)}
+                      >
+                        {portraitNode}
+                      </button>
+                    ) : linked && slug ? (
+                      <Link
+                        href={`/equipe/${slug}`}
+                        aria-label={`Ver perfil de ${person.name}`}
+                        className={`${frameClass} transition hover:border-gold`}
+                        style={frameStyle}
+                      >
+                        {portraitNode}
+                      </Link>
+                    ) : (
+                      <div className={frameClass} style={frameStyle}>
+                        {portraitNode}
+                      </div>
+                    )}
+                  </div>
+                  <div className="shrink-0 pt-2">
+                    <p
+                      className={`font-serif leading-tight text-cream ${
+                        team.length <= 2 ? "text-xl" : "text-base"
+                      }`}
                     >
-                      {portraitNode}
-                    </button>
-                  ) : linked && slug ? (
-                    <Link
-                      href={`/equipe/${slug}`}
-                      aria-label={`Ver perfil de ${person.name}`}
-                      className={`${frameClass} transition hover:border-gold`}
-                      style={frameStyle}
-                    >
-                      {portraitNode}
-                    </Link>
-                  ) : (
-                    <div className={frameClass} style={frameStyle}>
-                      {portraitNode}
-                    </div>
-                  )}
-                  <p
-                    className={`mt-2 font-serif leading-tight text-cream ${
-                      team.length <= 2 ? "text-xl" : "text-lg"
-                    }`}
-                  >
-                    {person.name}
-                  </p>
-                  <p className="text-xs text-muted">
-                    {person.branches.map((item) => BRANCH_LABEL[item]).join(" · ") || "Equipe"}
-                  </p>
+                      {person.name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {person.branches.map((item) => BRANCH_LABEL[item]).join(" · ") ||
+                        "Equipe"}
+                    </p>
+                  </div>
                 </li>
               );
             })}
