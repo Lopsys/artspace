@@ -4,7 +4,13 @@ import { BRANCH_LABEL } from "@/shared/lib/types";
 import { cn } from "@/shared/lib/cn";
 import { quoteWhatsAppUrl, type TeamProfile } from "@/features/public/team-profiles";
 
-export function ProfessionalProfile({ profile }: { profile: TeamProfile }) {
+export function ProfessionalProfile({
+  profile,
+  backHref = "/",
+}: {
+  profile: TeamProfile;
+  backHref?: string;
+}) {
   const quoteUrl = quoteWhatsAppUrl(profile.whatsapp, profile.branches);
   const firstName = profile.name.split(" ")[0];
   return (
@@ -16,8 +22,8 @@ export function ProfessionalProfile({ profile }: { profile: TeamProfile }) {
             <span className="font-serif tracking-[0.28em]">ARTSPACE</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/#equipe" className="text-sm text-muted hover:text-cream">
-              Equipe
+            <Link href={backHref} className="text-sm text-gold hover:text-gold-bright">
+              ← Voltar
             </Link>
             {quoteUrl ? (
               <a
@@ -48,34 +54,36 @@ export function ProfessionalProfile({ profile }: { profile: TeamProfile }) {
         </p>
 
         {profile.blocks.length > 0 && (
-        <div className="mt-10 grid gap-8 sm:mt-14 sm:gap-16">
+        <div className="mt-10 grid gap-10 sm:mt-14 sm:gap-16">
           {profile.blocks.map((block, index) => {
             const imageLeft = index % 2 === 1;
             return (
               <article
                 key={block.text}
-                className="grid grid-cols-2 items-center gap-3 sm:gap-8 md:gap-12"
+                className="grid items-center gap-5 sm:grid-cols-2 sm:gap-8 md:gap-12"
               >
                 <p
                   className={cn(
-                    "text-left text-xs leading-relaxed text-cream/90 sm:text-base md:text-lg",
-                    imageLeft && "order-2",
+                    "text-left text-lg leading-8 text-cream/90 sm:text-xl sm:leading-9 md:text-2xl md:leading-10",
+                    imageLeft && "sm:order-2",
                   )}
                 >
                   {block.text}
                 </p>
                 <div
                   className={cn(
-                    "relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-line bg-ink-soft sm:rounded-[2rem]",
-                    imageLeft && "order-1",
+                    "rounded-2xl border border-line bg-ink-soft sm:rounded-[2rem]",
+                    imageLeft && "sm:order-1",
                   )}
                 >
                   <Image
                     src={block.image}
                     alt={block.alt}
-                    fill
-                    sizes="(min-width: 768px) 28rem, 50vw"
-                    className="object-cover"
+                    width={1200}
+                    height={1500}
+                    sizes="(min-width: 768px) 28rem, 100vw"
+                    className="h-auto w-full rounded-[inherit] object-contain"
+                    style={{ width: "100%", height: "auto" }}
                     priority={index === 0}
                   />
                 </div>
@@ -88,21 +96,23 @@ export function ProfessionalProfile({ profile }: { profile: TeamProfile }) {
         {profile.portfolio.length > 0 && (
         <section className="mt-20">
           <h2 className="text-center font-serif text-3xl">Portfólio</h2>
-          <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted">
+          <p className="mx-auto mt-2 max-w-xl text-center text-base text-muted">
             Alguns trabalhos recentes.
           </p>
           <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {profile.portfolio.map((item) => (
               <li
                 key={item.src}
-                className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-ink-soft"
+                className="rounded-3xl border border-line bg-ink-soft"
               >
                 <Image
                   src={item.src}
                   alt={item.alt}
-                  fill
+                  width={1200}
+                  height={1500}
                   sizes="(min-width: 1024px) 20rem, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover"
+                  className="h-auto w-full rounded-[inherit] object-contain"
+                  style={{ width: "100%", height: "auto" }}
                 />
               </li>
             ))}

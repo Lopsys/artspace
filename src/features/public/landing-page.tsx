@@ -52,6 +52,15 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
+    const ramo = new URLSearchParams(window.location.search).get("ramo");
+    if (ramo === "tattoo" || ramo === "barber" || ramo === "piercing") {
+      setIntroDone(true);
+      setTeamFocus(ramo);
+      setPanel("team");
+    }
+  }, []);
+
+  useEffect(() => {
     const blockScroll = (event: Event) => {
       event.preventDefault();
     };
@@ -278,7 +287,7 @@ export function LandingPage() {
                       </button>
                     ) : linked && slug ? (
                       <Link
-                        href={`/equipe/${slug}`}
+                        href={`/equipe/${slug}?ramo=${teamFocus ?? "tattoo"}`}
                         aria-label={`Ver perfil de ${person.name}`}
                         className={`${frameClass} transition hover:border-gold`}
                         style={frameStyle}
