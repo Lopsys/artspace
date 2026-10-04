@@ -1,4 +1,3 @@
-import sharp from "sharp";
 import { getServiceClient } from "@/shared/lib/supabase/admin";
 import type { SavedPublicProfile } from "@/features/public/team-profiles";
 
@@ -57,6 +56,7 @@ export async function uploadProfileImage(professionalId: string, file: File) {
   const storage = await bucket();
   if (!storage) throw new Error("Para enviar a foto, cole SUPABASE_SERVICE_ROLE_KEY no .env.local.");
   const input = Buffer.from(await file.arrayBuffer());
+  const { default: sharp } = await import("sharp");
   const image = await sharp(input)
     .rotate()
     .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })

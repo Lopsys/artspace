@@ -33,7 +33,9 @@ export async function GET() {
       .map((item) => item.branch as Branch),
   }));
 
-  const avatars = await readAvatars(professionals.map((person) => person.id));
+  const avatars = await readAvatars(professionals.map((person) => person.id)).catch(
+    () => new Map<string, string | null>(),
+  );
   const withAvatars = professionals.map((person) => ({
     ...person,
     avatarUrl: avatars.get(person.id) ?? null,

@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { BookingWizard } from "@/features/public/booking-wizard";
 import type { PublicCatalog } from "@/features/public/catalog";
 import { fetchCatalog } from "@/features/public/public-api";
@@ -16,6 +15,7 @@ import { profileSlugForName, quoteKind } from "@/features/public/team-profiles";
 import { LionIntro } from "@/features/public/lion-intro";
 
 const BRANCHES: Branch[] = ["tattoo", "barber", "piercing"];
+type Panel = "hero" | "studio" | "team" | "booking";
 
 export function LandingPage() {
   const root = useRef<HTMLDivElement>(null);
@@ -27,20 +27,22 @@ export function LandingPage() {
     procedures: [],
   });
   const [teamFocus, setTeamFocus] = useState<Branch | null>(null);
+  const [panel, setPanel] = useState<Panel>("hero");
+  const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
   const team = useMemo(() => {
     const ordered = sortTeamForLanding(catalog.professionals);
-    if (!teamFocus || teamFocus === "barber") return ordered;
+    if (!teamFocus) return ordered;
     return ordered.filter((person) => person.branches.includes(teamFocus));
   }, [catalog.professionals, teamFocus]);
 
   function openBranch(item: Branch) {
-    if (item === "barber") {
-      setTeamFocus(null);
-      document.getElementById("agendar")?.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
     setTeamFocus(item);
-    document.getElementById("equipe")?.scrollIntoView({ behavior: "smooth" });
+    setPanel("team");
+  }
+
+  function openBarberBooking(professionalId: string) {
+    setSelectedBarberId(professionalId);
+    setPanel("booking");
   }
 
   useEffect(() => {
@@ -50,10 +52,32 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
+    const blockScroll = (event: Event) => {
+      event.preventDefault();
+    };
+    const blockKeys = (event: KeyboardEvent) => {
+      const keys = ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "];
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      const typing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable;
+      if (!typing && keys.includes(event.key)) event.preventDefault();
+    };
+    window.addEventListener("wheel", blockScroll, { passive: false });
+    window.addEventListener("touchmove", blockScroll, { passive: false });
+    window.addEventListener("keydown", blockKeys);
+    return () => {
+      window.removeEventListener("wheel", blockScroll);
+      window.removeEventListener("touchmove", blockScroll);
+      window.removeEventListener("keydown", blockKeys);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!introDone) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced || !root.current) return;
-    gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
       gsap.from("[data-hero]", {
         opacity: 0,
@@ -62,23 +86,14 @@ export function LandingPage() {
         stagger: 0.12,
         ease: "sine.out",
       });
-      gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((element) => {
-        gsap.from(element, {
-          scrollTrigger: { trigger: element, start: "top 82%" },
-          opacity: 0,
-          y: 36,
-          duration: 0.8,
-          ease: "power2.out",
-        });
-      });
     }, root);
     return () => ctx.revert();
   }, [introDone]);
 
   return (
-    <div ref={root} className="min-h-screen bg-ink text-cream">
+    <div ref={root} className="fixed inset-0 flex flex-col overflow-clip bg-ink text-cream">
       {!introDone && <LionIntro target={heroLion} onDone={finishIntro} />}
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-line/60 bg-ink/80 backdrop-blur-md">
+      <header className="relative z-40 shrink-0 border-b border-line/60 bg-ink/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <a href="#topo" className="flex items-center gap-3">
             <Image src="/lion.webp" alt="Artspace" width={36} height={36} />
@@ -111,8 +126,14 @@ export function LandingPage() {
         </div>
       </header>
 
-      <main id="topo" className="pt-20">
-        <section className="mx-auto grid min-h-[88vh] max-w-6xl place-items-center px-4 py-16 text-center">
+      <main id="topo" className="min-h-0 flex-1 overflow-clip">
+        <section
+          className={
+            panel === "hero"
+              ? "mx-auto grid h-full max-w-6xl place-items-center px-4 text-center"
+              : "hidden"
+          }
+        >
           <div>
             <div ref={heroLion}>
               <Image
@@ -131,27 +152,24 @@ export function LandingPage() {
             >
               ARTSPACE
             </h1>
-            <div data-hero className="mt-4 flex items-center justify-center gap-4 text-gold">
-              <span className="h-px w-12 bg-gold" />
-              <p className="text-sm tracking-[0.28em]">Barbearia</p>
-              <span className="h-px w-12 bg-gold" />
-            </div>
+            <div data-hero className="mx-auto mt-4 h-px w-24 bg-gold" />
             <p data-hero className="mx-auto mt-6 max-w-md text-muted">
               {STUDIO.tagline}. <br />Uma agenda por profissional, no seu tempo.
             </p>
             <div data-hero className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button
-                onClick={() =>
-                  document.getElementById("agendar")?.scrollIntoView({ behavior: "smooth" })
-                }
-              >
-                Agendar horário
-              </Button>
+              <Button onClick={() => setPanel("studio")}>Agendar horário</Button>
             </div>
           </div>
         </section>
 
-        <section id="ramos" className="mx-auto max-w-6xl px-4 py-20">
+        <section
+          id="ramos"
+          className={
+            panel === "studio"
+              ? "mx-auto grid h-full max-w-6xl content-center px-4"
+              : "hidden"
+          }
+        >
           <p data-reveal className="text-xs tracking-[0.28em] text-gold">
             O ESTÚDIO
           </p>
@@ -180,66 +198,103 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="equipe" className="mx-auto max-w-6xl px-4 py-20 text-center">
-          <p data-reveal className="text-xs tracking-[0.28em] text-gold">
-            EQUIPE
-          </p>
-          <h2 data-reveal className="mt-2 font-serif text-4xl">
-            Quem atende
-          </h2>
-          {teamFocus && teamFocus !== "barber" && (
-            <p className="mt-3 text-sm text-muted">{BRANCH_LABEL[teamFocus]}</p>
-          )}
-          <ul className="mx-auto mt-12 flex max-w-xs flex-col items-center gap-14">
+        <section
+          id="equipe"
+          className={
+            panel === "team"
+              ? "mx-auto flex h-full w-full max-w-6xl flex-col items-center overflow-hidden px-4 py-3 text-center"
+              : "hidden"
+          }
+        >
+          <div className="shrink-0">
+            <button
+              type="button"
+              className="text-sm text-gold hover:text-gold-bright"
+              onClick={() => setPanel("studio")}
+            >
+              ← Voltar
+            </button>
+            <p data-reveal className="mt-2 text-xs tracking-[0.28em] text-gold">
+              EQUIPE
+            </p>
+            <h2 data-reveal className="mt-1 font-serif text-3xl leading-tight sm:text-4xl">
+              Escolha seu profissional
+            </h2>
+            {teamFocus && <p className="mt-1 text-sm text-muted">{BRANCH_LABEL[teamFocus]}</p>}
+          </div>
+          <ul className="mt-2 flex min-h-0 w-full flex-1 flex-col">
             {team.map((person) => {
               const portrait = portraitFor(person.name, person.avatarUrl);
               const slug = profileSlugForName(person.name);
-              const showMore = Boolean(slug) && Boolean(quoteKind(person.branches));
-              const moreClassName =
-                "mt-4 inline-flex h-10 items-center justify-center rounded-full border border-line px-6 text-sm text-cream hover:border-gold/60";
+              const linked = Boolean(slug) && Boolean(quoteKind(person.branches));
+              const bookBarber = teamFocus === "barber";
+              const photoMax =
+                team.length <= 1 ? "17rem" : team.length === 2 ? "13rem" : "9.5rem";
+              const frameClass =
+                "relative block aspect-square shrink-0 overflow-hidden rounded-full border-2 border-gold/55 bg-ink-soft shadow-[0_0_0_6px_rgba(196,163,90,0.08)]";
+              const frameStyle = {
+                height: `min(${team.length <= 1 ? "82%" : team.length === 2 ? "74%" : "70%"}, ${photoMax})`,
+                width: "auto",
+              } as const;
+              const portraitNode = portrait ? (
+                <Image
+                  src={portrait.src}
+                  alt={linked ? "" : person.name}
+                  fill
+                  sizes={team.length <= 1 ? "272px" : team.length === 2 ? "208px" : "152px"}
+                  className="object-cover"
+                  style={
+                    portrait.position ? { objectPosition: portrait.position } : undefined
+                  }
+                />
+              ) : (
+                <span
+                  aria-hidden
+                  className="grid h-full place-items-center font-serif text-2xl text-gold"
+                >
+                  {initials(person.name)}
+                </span>
+              );
               return (
-                <li key={person.id} data-reveal className="w-full">
-                  <article className="grid justify-items-center">
-                    <div className="relative aspect-square w-40 overflow-hidden rounded-full border-2 border-gold/55 bg-ink-soft shadow-[0_0_0_6px_rgba(196,163,90,0.08)] sm:w-44">
-                      {portrait ? (
-                        <Image
-                          src={portrait.src}
-                          alt={person.name}
-                          fill
-                          sizes="176px"
-                          className="object-cover"
-                          style={
-                            portrait.position
-                              ? { objectPosition: portrait.position }
-                              : undefined
-                          }
-                        />
-                      ) : (
-                        <span
-                          aria-hidden
-                          className="grid h-full place-items-center font-serif text-3xl text-gold"
-                        >
-                          {initials(person.name)}
-                        </span>
-                      )}
+                <li
+                  key={person.id}
+                  data-reveal
+                  className="flex min-h-0 flex-1 flex-col items-center justify-center"
+                >
+                  {bookBarber ? (
+                    <button
+                      type="button"
+                      aria-label={`Agendar com ${person.name}`}
+                      className={`${frameClass} transition hover:border-gold`}
+                      style={frameStyle}
+                      onClick={() => openBarberBooking(person.id)}
+                    >
+                      {portraitNode}
+                    </button>
+                  ) : linked && slug ? (
+                    <Link
+                      href={`/equipe/${slug}`}
+                      aria-label={`Ver perfil de ${person.name}`}
+                      className={`${frameClass} transition hover:border-gold`}
+                      style={frameStyle}
+                    >
+                      {portraitNode}
+                    </Link>
+                  ) : (
+                    <div className={frameClass} style={frameStyle}>
+                      {portraitNode}
                     </div>
-                    <p className="mt-4 font-serif text-2xl leading-tight text-cream">
-                      {person.name}
-                    </p>
-                    <p className="mt-1 text-sm text-muted">
-                      {person.branches.map((item) => BRANCH_LABEL[item]).join(" · ") ||
-                        "Equipe"}
-                    </p>
-                    {showMore && slug && (
-                      <Link
-                        href={`/equipe/${slug}`}
-                        aria-label={`Ver mais sobre ${person.name}`}
-                        className={moreClassName}
-                      >
-                        Ver mais
-                      </Link>
-                    )}
-                  </article>
+                  )}
+                  <p
+                    className={`mt-2 font-serif leading-tight text-cream ${
+                      team.length <= 2 ? "text-xl" : "text-lg"
+                    }`}
+                  >
+                    {person.name}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {person.branches.map((item) => BRANCH_LABEL[item]).join(" · ") || "Equipe"}
+                  </p>
                 </li>
               );
             })}
@@ -249,20 +304,23 @@ export function LandingPage() {
               A equipe aparece aqui depois do primeiro login interno.
             </p>
           )}
-          {teamFocus && teamFocus !== "barber" && (
-            <button
-              type="button"
-              className="mt-10 text-sm text-gold"
-              onClick={() => setTeamFocus(null)}
-            >
-              Ver toda a equipe
-            </button>
-          )}
         </section>
 
-        <section id="agendar" className="mx-auto max-w-3xl px-4 py-20">
-          <div data-reveal>
-            <BookingWizard catalog={catalog} onQuoteBranch={openBranch} />
+        <section
+          id="agendar"
+          className={
+            panel === "booking"
+              ? "mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden px-4 py-3"
+              : "hidden"
+          }
+        >
+          <div className="min-h-0 flex-1">
+            <BookingWizard
+              catalog={catalog}
+              professionalId={selectedBarberId}
+              onQuoteBranch={openBranch}
+              onBack={() => setPanel("team")}
+            />
           </div>
         </section>
 
