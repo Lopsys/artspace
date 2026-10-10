@@ -3,6 +3,7 @@
 import { addDays, format, startOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
+import { blockWindows, isFullDayBlock } from "@/features/studio/rules";
 import { useStudio } from "@/features/studio/store";
 import { Button } from "@/shared/components/ui/button";
 import { Field } from "@/shared/components/ui/input";
@@ -93,17 +94,19 @@ export function GradeEditor({ professionalId }: { professionalId: string }) {
         <div className="grid gap-2 md:grid-cols-7">
           {week.map((day) => {
             const date = format(day, "yyyy-MM-dd");
-            const blocked = state.availabilityBlocks.some(
+            const dayBlocks = state.availabilityBlocks.filter(
               (item) =>
                 item.professionalId === professionalId && item.date === date,
             );
+            const fullDay = dayBlocks.some((item) => isFullDayBlock(item));
+            const windows = dayBlocks.flatMap((item) => blockWindows(item) ?? []);
             return (
               <button
                 key={date}
                 type="button"
                 onClick={() => void toggleDayBlock(professionalId, date)}
                 className={`rounded-3xl border p-4 text-left ${
-                  blocked
+                  fullDay || windows.length
                     ? "border-danger/40 bg-danger/10"
                     : "border-line bg-ink-soft"
                 }`}
@@ -113,7 +116,11 @@ export function GradeEditor({ professionalId }: { professionalId: string }) {
                 </p>
                 <p className="text-lg">{format(day, "d")}</p>
                 <p className="mt-2 text-xs text-muted">
-                  {blocked ? "Fechada — toque para abrir" : "Aberta — toque para fechar"}
+                  {fullDay
+                    ? "Dia todo fechado — toque para abrir"
+                    : windows.length
+                      ? `${windows.map((item) => `${item.start}–${item.end}`).join(", ")}. Toque para fechar o dia todo`
+                      : "Aberta — toque para fechar"}
                 </p>
               </button>
             );

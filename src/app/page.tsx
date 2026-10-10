@@ -6,6 +6,16 @@ export const metadata: Metadata = {
   description: "Tatuagem, barbearia e piercing em Viçosa. Agende online.",
 };
 
-export default function Home() {
-  return <LandingPage />;
+function teamBranch(ramo: string | undefined) {
+  if (ramo === "tattoo" || ramo === "barber" || ramo === "piercing") return ramo;
+  return null;
+}
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ ramo?: string }>;
+}) {
+  const { ramo } = await searchParams;
+  return <LandingPage initialBranch={teamBranch(ramo)} />;
 }

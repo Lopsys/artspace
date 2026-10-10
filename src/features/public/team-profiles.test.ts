@@ -26,6 +26,15 @@ describe("team profiles", () => {
     expect(profile?.portfolio.length).toBeGreaterThan(0);
   });
 
+  it("publishes Larisse with bio, photos and piercing quote", () => {
+    const profile = getTeamProfile("larisse");
+    expect(profile?.name).toBe("Larisse Ribeiro");
+    expect(profile?.blocks).toHaveLength(5);
+    expect(profile?.blocks[0].text).toMatch(/body piercer profissional desde 2021/);
+    expect(profile?.blocks.at(-1)?.text).toMatch(/cuidado, segurança e atenção/);
+    expect(profile?.portfolio.length).toBeGreaterThan(0);
+  });
+
   it("resolves the landing button only when the page exists", () => {
     expect(profileSlugForName("Maycom Michel")).toBe("maycom");
     expect(profileSlugForName("Jhonatas")).toBe("jhonatas");
@@ -35,12 +44,19 @@ describe("team profiles", () => {
   });
 
   it("builds a WhatsApp quote for tattoo and piercing", () => {
-    const tattoo = quoteWhatsAppUrl("31995638605", ["tattoo", "barber"]);
-    const piercing = quoteWhatsAppUrl("31995638605", ["piercing"]);
-    expect(tattoo).toContain("https://wa.me/5531995638605?text=");
+    const maycom = getTeamProfile("maycom");
+    const jhonatas = getTeamProfile("jhonatas");
+    const larisse = getTeamProfile("larisse");
+    const tattoo = quoteWhatsAppUrl(maycom?.whatsapp ?? "", ["tattoo", "barber"]);
+    const piercing = quoteWhatsAppUrl(larisse?.whatsapp ?? "", ["piercing"]);
+    expect(tattoo).toContain("https://wa.me/553195638605?text=");
+    expect(quoteWhatsAppUrl(jhonatas?.whatsapp ?? "", ["tattoo"])).toContain(
+      "https://wa.me/553182466728?text=",
+    );
+    expect(piercing).toContain("https://wa.me/553198687104?text=");
     expect(decodeURIComponent(tattoo ?? "")).toContain(QUOTE_MESSAGE.tattoo);
     expect(decodeURIComponent(piercing ?? "")).toContain(QUOTE_MESSAGE.piercing);
-    expect(quoteWhatsAppUrl("31995638605", ["barber"])).toBeNull();
+    expect(quoteWhatsAppUrl("3195638605", ["barber"])).toBeNull();
   });
 
   it("returns null for an unknown slug", () => {

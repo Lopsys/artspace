@@ -62,6 +62,9 @@ export interface AvailabilityBlock {
   professionalId: string;
   date: string;
   reason: string;
+  /** Ausentes = o dia inteiro. Presentes = só esse intervalo. */
+  start?: string | null;
+  end?: string | null;
 }
 
 export interface Appointment {

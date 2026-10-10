@@ -51,6 +51,13 @@ describe("isDayBlocked", () => {
     ];
     expect(isDayBlocked(blocks, "maycom", "2026-09-14")).toBe(true);
     expect(isDayBlocked(blocks, "larisse", "2026-09-14")).toBe(false);
+    expect(
+      isDayBlocked(
+        [{ id: "m", professionalId: "maycom", date: "2026-09-14", reason: "Manhã", start: "09:00", end: "12:00" }],
+        "maycom",
+        "2026-09-14",
+      ),
+    ).toBe(false);
   });
 });
 
@@ -156,6 +163,58 @@ describe("generateSlots", () => {
       now,
     });
     expect(remaining[0]?.startsAt).toBe("2026-09-14T13:00:00.000Z");
+  });
+
+  it("hides only the locked window", () => {
+    const slots = generateSlots({
+      professionalId,
+      durationMinutes: 60,
+      fromDate: "2026-09-14",
+      dayCount: 1,
+      rules,
+      blocks: [
+        {
+          id: "b",
+          professionalId,
+          date: "2026-09-14",
+          reason: "Manhã",
+          start: "09:00",
+          end: "10:00",
+        },
+      ],
+      appointments: [],
+      now,
+    });
+    expect(slots.map((item) => item.startsAt)).toEqual([
+      "2026-09-14T13:00:00.000Z",
+      "2026-09-14T13:30:00.000Z",
+      "2026-09-14T14:00:00.000Z",
+    ]);
+  });
+
+  it("reads a locked window stored on the block reason", () => {
+    const slots = generateSlots({
+      professionalId,
+      durationMinutes: 60,
+      fromDate: "2026-09-14",
+      dayCount: 1,
+      rules,
+      blocks: [
+        {
+          id: "b",
+          professionalId,
+          date: "2026-09-14",
+          reason: "09:00-10:00",
+        },
+      ],
+      appointments: [],
+      now,
+    });
+    expect(slots.map((item) => item.startsAt)).toEqual([
+      "2026-09-14T13:00:00.000Z",
+      "2026-09-14T13:30:00.000Z",
+      "2026-09-14T14:00:00.000Z",
+    ]);
   });
 
   it("returns no slots on a weekday without grade", () => {

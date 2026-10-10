@@ -17,17 +17,21 @@ import { LionIntro } from "@/features/public/lion-intro";
 const BRANCHES: Branch[] = ["tattoo", "barber", "piercing"];
 type Panel = "hero" | "studio" | "team" | "booking";
 
-export function LandingPage() {
+export function LandingPage({
+  initialBranch = null,
+}: {
+  initialBranch?: Branch | null;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const heroLion = useRef<HTMLDivElement>(null);
-  const [introDone, setIntroDone] = useState(false);
+  const [introDone, setIntroDone] = useState(() => Boolean(initialBranch));
   const finishIntro = useCallback(() => setIntroDone(true), []);
   const [catalog, setCatalog] = useState<PublicCatalog>({
     professionals: [],
     procedures: [],
   });
-  const [teamFocus, setTeamFocus] = useState<Branch | null>(null);
-  const [panel, setPanel] = useState<Panel>("hero");
+  const [teamFocus, setTeamFocus] = useState<Branch | null>(initialBranch);
+  const [panel, setPanel] = useState<Panel>(initialBranch ? "team" : "hero");
   const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
   const team = useMemo(() => {
     const ordered = sortTeamForLanding(catalog.professionals);
@@ -49,15 +53,6 @@ export function LandingPage() {
     void fetchCatalog()
       .then(setCatalog)
       .catch(() => setCatalog({ professionals: [], procedures: [] }));
-  }, []);
-
-  useEffect(() => {
-    const ramo = new URLSearchParams(window.location.search).get("ramo");
-    if (ramo === "tattoo" || ramo === "barber" || ramo === "piercing") {
-      setIntroDone(true);
-      setTeamFocus(ramo);
-      setPanel("team");
-    }
   }, []);
 
   useEffect(() => {
@@ -103,35 +98,48 @@ export function LandingPage() {
     <div ref={root} className="fixed inset-0 flex flex-col overflow-clip bg-ink text-cream">
       {!introDone && <LionIntro target={heroLion} onDone={finishIntro} />}
       <header className="relative z-40 shrink-0 border-b border-line/60 bg-ink/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <div
+          className={`mx-auto flex max-w-6xl items-center px-4 py-3 ${
+            panel === "hero" || panel === "team" ? "justify-center" : "justify-between gap-3"
+          }`}
+        >
           <a href="#topo" className="flex items-center gap-3">
             <Image src="/lion.webp" alt="Artspace" width={36} height={36} />
             <span className="font-serif tracking-[0.28em]">ARTSPACE</span>
           </a>
-          <nav className="hidden items-center gap-6 text-sm text-muted sm:flex">
-            <a href="#ramos" className="hover:text-cream">
-              Ramos
-            </a>
-            <button
-              type="button"
-              className="hover:text-cream"
-              onClick={() => {
-                setTeamFocus(null);
-                document.getElementById("equipe")?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Equipe
-            </button>
-            <a href="#agendar" className="hover:text-cream">
-              Agendar
-            </a>
-            <a href="#contato" className="hover:text-cream">
-              Contato
-            </a>
-          </nav>
-          <Button className="h-9 px-4" onClick={() => document.getElementById("agendar")?.scrollIntoView({ behavior: "smooth" })}>
-            Agendar
-          </Button>
+          {panel !== "hero" && panel !== "team" && (
+            <>
+              <nav className="hidden items-center gap-6 text-sm text-muted sm:flex">
+                <a href="#ramos" className="hover:text-cream">
+                  Ramos
+                </a>
+                <button
+                  type="button"
+                  className="hover:text-cream"
+                  onClick={() => {
+                    setTeamFocus(null);
+                    document.getElementById("equipe")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Equipe
+                </button>
+                <a href="#agendar" className="hover:text-cream">
+                  Agendar
+                </a>
+                <a href="#contato" className="hover:text-cream">
+                  Contato
+                </a>
+              </nav>
+              <Button
+                className="h-9 px-4"
+                onClick={() =>
+                  document.getElementById("agendar")?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Agendar
+              </Button>
+            </>
+          )}
         </div>
       </header>
 

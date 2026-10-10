@@ -1,5 +1,4 @@
 import type { Branch } from "@/shared/lib/types";
-import { STUDIO } from "@/shared/lib/studio-public";
 import { onlyDigits } from "@/shared/lib/format";
 
 export type ProfileBlock = {
@@ -18,8 +17,8 @@ export type TeamProfile = {
 };
 
 export const QUOTE_MESSAGE = {
-  tattoo: "olá, vim pelo site e gostaria de fazer orçamento de uma tatuagem",
-  piercing: "olá, vim pelo site e gostaria de fazer orçamento de um piercing",
+  tattoo: "olá, gostaria de fazer um orçamento personalizado para minha tattoo",
+  piercing: "olá, gostaria de fazer um orçamento para colocar um piercing",
 } as const;
 
 export function quoteKind(branches: Branch[]): "tattoo" | "piercing" | null {
@@ -64,7 +63,9 @@ export function quoteWhatsAppUrl(phone: string, branches: Branch[]) {
   if (!kind) return null;
   const digits = onlyDigits(phone);
   if (!digits) return null;
-  return `https://wa.me/55${digits}?text=${encodeURIComponent(QUOTE_MESSAGE[kind])}`;
+  const withCountry =
+    digits.startsWith("55") && digits.length >= 12 ? digits : `55${digits}`;
+  return `https://wa.me/${withCountry}?text=${encodeURIComponent(QUOTE_MESSAGE[kind])}`;
 }
 
 const PROFILES: Record<string, TeamProfile> = {
@@ -72,7 +73,7 @@ const PROFILES: Record<string, TeamProfile> = {
     slug: "maycom",
     name: "Maycom Michel",
     branches: ["tattoo", "barber"],
-    whatsapp: STUDIO.phone,
+    whatsapp: "3195638605",
     blocks: [
       {
         text: "Minha trajetória como artista começou em 2013, movida pela paixão por transformar ideias em arte na pele.",
@@ -107,7 +108,7 @@ const PROFILES: Record<string, TeamProfile> = {
     slug: "jhonatas",
     name: "Jhonatas",
     branches: ["tattoo"],
-    whatsapp: STUDIO.phone,
+    whatsapp: "3182466728",
     blocks: [
       {
         text: "Meu nome é Jhonatas, sou tatuador há 5 anos.",
@@ -138,9 +139,37 @@ const PROFILES: Record<string, TeamProfile> = {
     slug: "larisse",
     name: "Larisse Ribeiro",
     branches: ["piercing"],
-    whatsapp: STUDIO.phone,
-    blocks: [],
-    portfolio: [],
+    whatsapp: "3198687104",
+    blocks: [
+      {
+        text: "Olá, seja bem-vindo(a)! Sou Larisse Ribeiro, body piercer profissional desde 2021.",
+        image: "/team/larisse/portrait.jpg",
+        alt: "Larisse Ribeiro com modelo de orelha e joias de piercing",
+      },
+      {
+        text: "Atuo com perfurações tradicionais, utilizando joias em titânio grau de implante, escolhidas pensando na qualidade e no processo de cicatrização.",
+        image: "/team/larisse/nostril.jpg",
+        alt: "Piercing no nariz com joia em titânio",
+      },
+      {
+        text: "Também ofereço avaliação de cicatrização e remoção de piercings, sempre com atenção às necessidades de cada cliente.",
+        image: "/team/larisse/navel.jpg",
+        alt: "Piercing no umbigo com joia em titânio",
+      },
+      {
+        text: "Mais do que colocar um piercing, meu objetivo é cuidar de cada detalhe para que você tenha um atendimento seguro, responsável e personalizado.",
+        image: "/team/larisse/ear-cluster.jpg",
+        alt: "Projeto de piercings na orelha com joias em titânio",
+      },
+      {
+        text: "Seu piercing com cuidado, segurança e atenção aos detalhes.",
+        image: "/team/larisse/industrial.jpg",
+        alt: "Piercing industrial e composição na orelha",
+      },
+    ],
+    portfolio: [
+      { src: "/team/larisse/ear-gold.jpg", alt: "Piercings em ouro na orelha com borboleta" },
+    ],
   },
 };
 

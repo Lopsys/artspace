@@ -46,7 +46,7 @@ import {
   branchesOf,
   findClientByCpf,
   findOverlap,
-  isDayBlocked,
+  isIntervalBlocked,
 } from "@/features/studio/rules";
 import { isSupabaseConfigured } from "@/shared/lib/supabase/env";
 
@@ -329,7 +329,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
         return { ok: false, message: "Horário inválido." };
       }
 
-      if (isDayBlocked(state.availabilityBlocks, input.professionalId, window.date)) {
+      if (isIntervalBlocked(state.availabilityBlocks, input.professionalId, window.start, window.end)) {
         return { ok: false, message: "Esse intervalo não está livre." };
       }
 
@@ -443,7 +443,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
         return { ok: false, message: "Informe a nova data e hora." };
       }
 
-      if (isDayBlocked(state.availabilityBlocks, current.professionalId, window.date)) {
+      if (isIntervalBlocked(state.availabilityBlocks, current.professionalId, window.start, window.end)) {
         return { ok: false, message: "Esse intervalo não está livre." };
       }
 
@@ -707,7 +707,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
         return result;
       }
       setState((prev) => {
-        const existing = prev.availabilityBlocks.find(
+        const existing = prev.availabilityBlocks.some(
           (item) =>
             item.professionalId === professionalId && item.date === date,
         );
@@ -716,7 +716,8 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
           return {
             ...prev,
             availabilityBlocks: prev.availabilityBlocks.filter(
-              (item) => item.id !== existing.id,
+              (item) =>
+                !(item.professionalId === professionalId && item.date === date),
             ),
           };
         }
@@ -725,7 +726,7 @@ export function StudioProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           availabilityBlocks: [
             ...prev.availabilityBlocks,
-            { id: uid("block"), professionalId, date, reason },
+            { id: uid("block"), professionalId, date, reason, start: null, end: null },
           ],
         };
       });

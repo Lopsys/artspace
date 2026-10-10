@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateSlots, saoPauloDateString, weekStartMonday } from "@/features/studio/rules";
+import { generateSlots, mapAvailabilityBlock, saoPauloDateString, weekStartMonday } from "@/features/studio/rules";
 import { createSeedState } from "@/features/studio/seed";
 import { getServiceClient } from "@/shared/lib/supabase/admin";
 import type {
@@ -107,12 +107,16 @@ export async function GET(request: Request) {
     end: String(row.end_time).slice(0, 5),
     slotMinutes: row.slot_minutes as number,
   }));
-  const blocks: AvailabilityBlock[] = (blocksRes.data ?? []).map((row) => ({
-    id: row.id as string,
-    professionalId: row.professional_id as string,
-    date: String(row.date),
-    reason: (row.reason as string) ?? "Folga",
-  }));
+  const blocks: AvailabilityBlock[] = (blocksRes.data ?? []).map((row) =>
+    mapAvailabilityBlock({
+      id: row.id as string,
+      professional_id: row.professional_id as string,
+      date: String(row.date),
+      reason: row.reason as string | null,
+      start_time: row.start_time as string | null,
+      end_time: row.end_time as string | null,
+    }),
+  );
 
   const slots = generateSlots({
     professionalId,

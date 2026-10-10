@@ -1,6 +1,6 @@
 import { addMinutes, formatISO, parseISO } from "date-fns";
+import { mapAvailabilityBlock } from "@/features/studio/rules";
 import { PROFESSIONAL_BOOTSTRAP } from "@/features/studio/seed";
-import { syncSharedProcedures } from "@/features/studio/sync-procedures";
 import { getSupabase } from "@/shared/lib/supabase/client";
 import { onlyDigits } from "@/shared/lib/format";
 import type {
@@ -168,8 +168,6 @@ export async function loadStudio(): Promise<
     return { ok: true, state: emptyState(), sessionId: null, kind: "client" };
   }
 
-  await syncSharedProcedures(supabase);
-
   const [
     profilesRes,
     branchesRes,
@@ -251,12 +249,16 @@ export async function loadStudio(): Promise<
         end: asTime(String(row.end_time)),
         slotMinutes: row.slot_minutes as number,
       })),
-      availabilityBlocks: (blocksRes.data ?? []).map((row: DbRow) => ({
-        id: row.id as string,
-        professionalId: row.professional_id as string,
-        date: String(row.date),
-        reason: (row.reason as string) ?? "Folga",
-      })),
+      availabilityBlocks: (blocksRes.data ?? []).map((row: DbRow) =>
+        mapAvailabilityBlock({
+          id: row.id as string,
+          professional_id: row.professional_id as string,
+          date: String(row.date),
+          reason: (row.reason as string) ?? null,
+          start_time: (row.start_time as string) ?? null,
+          end_time: (row.end_time as string) ?? null,
+        }),
+      ),
       appointments: (appointmentsRes.data ?? []).map((row: DbRow) => ({
         id: row.id as string,
         clientId: row.client_id as string,
@@ -602,18 +604,24 @@ export async function toggleAvailabilityBlock(
   reason = "Folga",
 ): Promise<Result> {
   const supabase = getSupabase();
-  const { data: existing } = await supabase
+  const { data: existing, error: readError } = await supabase
     .from("availability_blocks")
-    .select("id")
+    .select("id, reason, start_time, end_time")
     .eq("professional_id", professionalId)
-    .eq("date", date)
-    .maybeSingle();
+    .eq("date", date);
 
-  if (existing) {
-    const { error } = await supabase
-      .from("availability_blocks")
-      .delete()
-      .eq("id", existing.id);
+  if (readError) return { ok: false, message: explain(readError) };
+
+  const fullDayIds = (existing ?? [])
+    .filter((row: { reason?: string | null; start_time?: string | null; end_time?: string | null }) => {
+      const text = String(row.reason ?? "");
+      const timed = /(\d{2}:\d{2})-(\d{2}:\d{2})/.test(text) || Boolean(row.start_time && row.end_time);
+      return !timed;
+    })
+    .map((row: { id: string }) => row.id);
+
+  if (fullDayIds.length) {
+    const { error } = await supabase.from("availability_blocks").delete().in("id", fullDayIds);
     if (error) return { ok: false, message: explain(error) };
     return { ok: true };
   }

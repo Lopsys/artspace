@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findOverlap, generateSlots, saoPauloDateString, weekStartMonday } from "@/features/studio/rules";
+import { findOverlap, generateSlots, mapAvailabilityBlock, saoPauloDateString, weekStartMonday } from "@/features/studio/rules";
 import { onlyDigits } from "@/shared/lib/format";
 import { getServiceClient } from "@/shared/lib/supabase/admin";
 import type { Appointment, AppointmentStatus, AvailabilityRule } from "@/shared/lib/types";
@@ -120,12 +120,16 @@ export async function POST(request: Request) {
     fromDate: weekStartMonday(saoPauloDateString(start)),
     dayCount: 7,
     rules,
-    blocks: (blocksRes.data ?? []).map((row) => ({
-      id: row.id as string,
-      professionalId: row.professional_id as string,
-      date: String(row.date),
-      reason: (row.reason as string) ?? "Folga",
-    })),
+    blocks: (blocksRes.data ?? []).map((row) =>
+      mapAvailabilityBlock({
+        id: row.id as string,
+        professional_id: row.professional_id as string,
+        date: String(row.date),
+        reason: row.reason as string | null,
+        start_time: row.start_time as string | null,
+        end_time: row.end_time as string | null,
+      }),
+    ),
     appointments,
   });
 

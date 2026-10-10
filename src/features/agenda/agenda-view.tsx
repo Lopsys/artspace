@@ -12,6 +12,7 @@ import {
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { AppointmentForm } from "@/features/agenda/appointment-form";
+import { blockWindows, isFullDayBlock } from "@/features/studio/rules";
 import { useStudio } from "@/features/studio/store";
 import { Button } from "@/shared/components/ui/button";
 import { Field } from "@/shared/components/ui/input";
@@ -187,11 +188,13 @@ export function AgendaView({
           const dayItems = items.filter((item) =>
             isSameDay(parseISO(item.startsAt), day),
           );
-          const blocked = state.availabilityBlocks.some(
+          const dayBlocks = state.availabilityBlocks.filter(
             (item) =>
               item.professionalId === professionalId &&
               item.date === format(day, "yyyy-MM-dd"),
           );
+          const blocked = dayBlocks.some((item) => isFullDayBlock(item));
+          const partial = dayBlocks.filter((item) => !isFullDayBlock(item));
 
           return (
             <article
@@ -206,6 +209,14 @@ export function AgendaView({
                 {blocked && (
                   <p className="mt-1 text-xs text-danger">Agenda fechada</p>
                 )}
+                {partial.flatMap((item) => {
+                  const windows = blockWindows(item) ?? [];
+                  return windows.map((window) => (
+                    <p key={`${item.id}-${window.start}`} className="mt-1 text-xs text-danger">
+                      Fechado {window.start}–{window.end}
+                    </p>
+                  ));
+                })}
               </header>
               <div className="grid gap-2">
                 {dayItems.length === 0 && (

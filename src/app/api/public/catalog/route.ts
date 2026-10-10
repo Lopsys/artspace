@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { catalogFromState } from "@/features/public/catalog";
 import { createSeedState } from "@/features/studio/seed";
-import { syncSharedProcedures } from "@/features/studio/sync-procedures";
 import { readAvatars } from "@/features/profile/media-store";
 import { getServiceClient } from "@/shared/lib/supabase/admin";
 import type { Branch } from "@/shared/lib/types";
@@ -11,8 +10,6 @@ export async function GET() {
   if (!admin) {
     return NextResponse.json(catalogFromState(createSeedState()));
   }
-
-  await syncSharedProcedures(admin);
 
   const [profilesRes, branchesRes, proceduresRes] = await Promise.all([
     admin.from("profiles").select("id, name, role").eq("role", "professional"),

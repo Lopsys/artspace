@@ -43,6 +43,37 @@ export function intervalsOverlap(
   return aStart < bEnd && bStart < aEnd;
 }
 
+export function blockWindows(block: AvailabilityBlock) {
+  const encoded = [...(block.reason || "").matchAll(/(\d{2}:\d{2})-(\d{2}:\d{2})/g)];
+  if (encoded.length) {
+    return encoded.map((match) => ({ start: match[1], end: match[2] }));
+  }
+  if (block.start && block.end) return [{ start: block.start, end: block.end }];
+  return null;
+}
+
+export function isFullDayBlock(block: AvailabilityBlock) {
+  return blockWindows(block) === null;
+}
+
+export function mapAvailabilityBlock(row: {
+  id: string;
+  professional_id: string;
+  date: string;
+  reason?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+}): AvailabilityBlock {
+  return {
+    id: row.id,
+    professionalId: row.professional_id,
+    date: String(row.date).slice(0, 10),
+    reason: row.reason || "Folga",
+    start: row.start_time ? String(row.start_time).slice(0, 5) : null,
+    end: row.end_time ? String(row.end_time).slice(0, 5) : null,
+  };
+}
+
 export function isDayBlocked(
   blocks: AvailabilityBlock[],
   professionalId: string,
@@ -50,8 +81,32 @@ export function isDayBlocked(
 ) {
   return blocks.some(
     (block) =>
-      block.professionalId === professionalId && block.date === date,
+      block.professionalId === professionalId &&
+      block.date === date &&
+      isFullDayBlock(block),
   );
+}
+
+export function isIntervalBlocked(
+  blocks: AvailabilityBlock[],
+  professionalId: string,
+  startsAt: Date,
+  endsAt: Date,
+) {
+  const date = saoPauloDateString(startsAt);
+  return blocks.some((block) => {
+    if (block.professionalId !== professionalId || block.date !== date) return false;
+    const windows = blockWindows(block);
+    if (!windows) return true;
+    return windows.some((window) =>
+      intervalsOverlap(
+        startsAt,
+        endsAt,
+        atSaoPaulo(date, window.start),
+        atSaoPaulo(date, window.end),
+      ),
+    );
+  });
 }
 
 export function findOverlap(
@@ -123,6 +178,7 @@ export function generateSlots(input: {
       const end = addMinutes(cursor, input.durationMinutes);
       if (
         cursor > now &&
+        !isIntervalBlocked(input.blocks, input.professionalId, cursor, end) &&
         !findOverlap(input.appointments, input.professionalId, cursor, end)
       ) {
         slots.push({
